@@ -1,8 +1,8 @@
 import itertools
 def genPset(Items):
     n = len(Items)
-    for r in xrange(n+1):
-        for item in itertools.combinations(Items, r):
+    for i in range(n + 1):
+        for item in itertools.combinations(Items, i):
             yield list(item)
 
 test = genPset([1, 2, 3])
