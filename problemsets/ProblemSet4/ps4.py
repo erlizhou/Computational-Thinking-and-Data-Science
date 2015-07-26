@@ -74,4 +74,42 @@ def simulationTwoDrugsDelayedTreatment(numTrials):
 
     numTrials: number of simulation runs to execute (an integer)
     """
-    
+    numViruses = 100
+    maxPop = 1000
+    maxBirthProb = 0.1
+    clearProb = 0.05
+    resistances = {'guttagonol': False, 'grimpex': False}
+    mutProb = 0.005
+
+    delays = [300, 150, 75, 0]
+    first_drug = 150
+    res = []
+
+    for delay in delays:
+    	second_drug = first_drug + delay
+    	steps = second_drug + 150
+    	for trial in range(numTrials):
+    		viruses = []
+    		virusPop = 0
+    		for i in range(numViruses):
+    			viruses.append(ResistantVirus(maxBirthProb, clearProb, resistances, mutProb))
+    		patient = TreatedPatient(viruses, maxPop)
+
+    		for step in range(steps):
+    			if step == first_drug:
+    				patient.addPrescription('guttagonol')
+    			elif step == second_drug:
+    				patient.addPrescription('grimpex')
+    			virusPop = patient.update()
+    		res.append(virusPop)
+
+    toPlot = []
+    for i in range(0, len(res), numTrials):
+        toPlot.append(res[i:i + numTrials])
+
+    for i, j in enumerate(delays):
+        pylab.subplot(2, 2, i + 1)
+        pylab.hist(toPlot[i])
+    pylab.show()
+
+simulationTwoDrugsDelayedTreatment(100)
