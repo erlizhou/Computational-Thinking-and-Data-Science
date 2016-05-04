@@ -78,7 +78,7 @@ class RectangularRoom(object):
         """
         self.width = width
         self.height = height
-        self.tiles = [[0 for i in range(width)] for i in range(height)]
+        self.tiles = [[False for i in range(width)] for j in range(height)]
     
     def cleanTileAtPosition(self, pos):
         """
@@ -88,7 +88,7 @@ class RectangularRoom(object):
 
         pos: a Position
         """
-        self.tiles[int(pos.y) - 1][int(pos.x) - 1] = 1
+        self.tiles[int(pos.getY())][int(pos.getX())] = True
 
     def isTileCleaned(self, m, n):
         """
@@ -100,7 +100,7 @@ class RectangularRoom(object):
         n: an integer
         returns: True if (m, n) is cleaned, False otherwise
         """
-        return self.tiles[n - 1][m - 1] == 1
+        return self.tiles[n][m]
     
     def getNumTiles(self):
         """
@@ -116,10 +116,12 @@ class RectangularRoom(object):
 
         returns: an integer
         """
-        total = 0
-        for tiles in self.tiles:
-        	total += sum(tiles)
-        return total
+        cleanTiles = 0
+        for i in range(self.height):
+            for j in range(self.width):
+                if self.tiles[i][j] == True:
+                    cleanTiles += 1
+        return cleanTiles
 
     def getRandomPosition(self):
         """
@@ -127,7 +129,9 @@ class RectangularRoom(object):
 
         returns: a Position object.
         """
-        return Position(random.random() * self.width, random.random() * self.height)
+        x = random.random() * self.width
+        y = random.random() * self.height
+        return Position(x, y)
 
     def isPositionInRoom(self, pos):
         """
@@ -136,7 +140,7 @@ class RectangularRoom(object):
         pos: a Position object.
         returns: True if pos is in the room, False otherwise.
         """
-        return pos.x >= 0 and pos.x < self.width and pos.y >= 0 and pos.y < self.height
+        return pos.getX() >= 0 and pos.getX() < self.width and pos.getY() >= 0 and pos.getY() < self.height
 
 
 class Robot(object):
@@ -158,10 +162,10 @@ class Robot(object):
         room:  a RectangularRoom object.
         speed: a float (speed > 0)
         """
-        self.room = room
         self.speed = speed
+        self.room = room
         self.position = room.getRandomPosition()
-        self.direction = random.randint(0, 359)
+        self.direction = random.random() * 360
         self.room.cleanTileAtPosition(self.position)
 
     def getRobotPosition(self):
@@ -223,13 +227,12 @@ class StandardRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        position = self.getRobotPosition()
-        newPosition = position.getNewPosition(self.getRobotDirection(), self.speed)
-        self.room.cleanTileAtPosition(position)
+        newPosition = self.position.getNewPosition(self.direction, self.speed)
         if self.room.isPositionInRoom(newPosition):
-        	self.setRobotPosition(newPosition)
+            self.setRobotPosition(newPosition)
+            self.room.cleanTileAtPosition(newPosition)
         else:
-        	self.setRobotDirection(random.randint(0, 359))
+            self.setRobotDirection(random.random() * 360)
 
 # Uncomment this line to see your implementation of StandardRobot in action!
 # testRobotMovement(StandardRobot, RectangularRoom)
@@ -254,24 +257,29 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
     robot_type: class of robot to be instantiated (e.g. StandardRobot or
                 RandomWalkRobot)
     """
- 
-    time_steps = []
+    total = 0.0
     for i in range(num_trials):
-    	#anim = ps2_visualize.RobotVisualization(num_robots, width, height)
-    	room = RectangularRoom(width, height)
-    	robots= [robot_type(room, speed) for i in range(num_robots)]
-    	counter = 0.0
-    	while room.getNumCleanedTiles() < room.getNumTiles() * min_coverage:
-    		#anim.update(room, robots)
-    		for bot in robots:
-    			bot.updatePositionAndClean()
-    		counter += 1
-    	time_steps.append(counter)
-    	#anim.done()
-    return sum(time_steps) / num_trials
+        # anim = ps2_visualize.RobotVisualization(num_robots, width, height)
+        timeSteps = 0
+        room = RectangularRoom(width, height)
+        robots = []
+        for j in range(num_robots):
+            robot = robot_type(room, speed)
+            robots.append(robot)
+
+        while (float(room.getNumCleanedTiles()) / room.getNumTiles()) < min_coverage:
+            for robot in robots:
+                # anim.update(room, robots)
+                robot.updatePositionAndClean()
+            timeSteps += 1
+
+        total += timeSteps
+        # anim.done()
+    return total / num_trials
+
 
 # Uncomment this line to see how much your simulation takes on average
-# print runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot)
+# print  runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot)
 
 
 # === Problem 4
@@ -287,13 +295,13 @@ class RandomWalkRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        position = self.getRobotPosition()
-        newPosition = position.getNewPosition(self.getRobotDirection(), self.speed)
-        self.room.cleanTileAtPosition(position)
+        newPosition = self.position.getNewPosition(self.direction, self.speed)
+        self.setRobotDirection(random.random() * 360)
         if self.room.isPositionInRoom(newPosition):
-        	self.setRobotPosition(newPosition)
-        self.setRobotDirection(random.randint(0, 359))
+            self.setRobotPosition(newPosition)
+            self.room.cleanTileAtPosition(newPosition)
 
+# print  runSimulation(1, 1.0, 10, 10, 0.75, 30, RandomWalkRobot)
 
 def showPlot1(title, x_label, y_label):
     """
@@ -342,7 +350,7 @@ def showPlot2(title, x_label, y_label):
 # 1) Write a function call to showPlot1 that generates an appropriately-labeled
 #     plot.
 #
-showPlot1("Time It Takes 1 - 10 Robots To Clean 80% Of A Room", "Number of Robots", "Time-steps")
+showPlot1("Time It Takes 1 - 10 Robots To Clean 80% Of A Room", "Number of robots", "Time-steps")
 #
 
 #

@@ -43,7 +43,7 @@ class WeightedEdge(Edge):
     def getOutdoorDistance(self):
         return self.outdoor
     def __str__(self):
-        return Edge.__str__(self) + " (" + str(self.total) + ", " + str(self.outdoor) + ")"
+        return '{0}->{1} ({2}, {3})'.format(self.src, self.dest, self.total, self.outdoor)
 
 class Digraph(object):
     """
@@ -77,7 +77,7 @@ class Digraph(object):
     def __str__(self):
         res = ''
         for k in self.edges:
-            for d in self.edges[str[k]]:
+            for d in self.edges[str(k)]:
                 res = '{0}{1}->{2}\n'.format(res, k, d)
         return res[:-1]
 
@@ -89,15 +89,36 @@ class WeightedDigraph(Digraph):
         dest = edge.getDestination()
         if not(src in self.nodes and dest in self.nodes):
             raise ValueError('Node not in graph')
-        self.edges[src].append((dest, edge.getTotalDistance(), edge.getOutdoorDistance()))
+        total = edge.getTotalDistance()
+        outdoor = edge.getOutdoorDistance()
+        self.edges[src].append([dest, (float(total), float(outdoor))])
     def childrenOf(self, node):
-        res = []
-        for e in self.edges[node]:
-            res.append(e[0])
-        return res
+        nodes = []
+        for child in self.edges[node]:
+            nodes.append(child[0])
+        return nodes
     def __str__(self):
         res = ''
         for k in self.edges:
-            for d in self.edges[k]:
-                res += '{0}->{1} ({2}, {3})\n'.format(k, d[0], float(d[1]), float(d[2]))
+            for node in self.edges[k]:
+                d = node[0]
+                t = node[1][0]
+                o = node[1][1]
+                res = '{0}{1}->{2} ({3}, {4})\n'.format(res, k, d, t, o)
         return res[:-1]
+
+nx = Node('x')
+ny = Node('y')
+nz = Node('z')
+e1 = WeightedEdge(nx, ny, 18, 8)
+e2 = WeightedEdge(ny, nz, 20, 1)
+e3 = WeightedEdge(nz, nx, 7, 6)
+g = WeightedDigraph()
+g.addNode(nx)
+g.addNode(ny)
+g.addNode(nz)
+g.addEdge(e1)
+g.addEdge(e2)
+g.addEdge(e3)
+print g.edges
+

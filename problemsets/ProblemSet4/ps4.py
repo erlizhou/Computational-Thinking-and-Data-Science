@@ -22,39 +22,27 @@ def simulationDelayedTreatment(numTrials):
     numTrials: number of simulation runs to execute (an integer)
     """
     
-    numViruses = 100
-    maxPop = 1000
-    maxBirthProb = 0.1
-    clearProb = 0.05
-    resistances = {'guttagonol': False}
-    mutProb = 0.005
     delays = [300, 150, 75, 0]
-    res = []
-
     for delay in delays:
-        for i in range(numTrials):
-            virusList = []
-            virusPop = 0
-            for n in range(numViruses):
-                virusList.append(ResistantVirus(maxBirthProb, clearProb, resistances, mutProb))
-            my_patient = TreatedPatient(virusList, maxPop)
+    	total = []
+    	for i in range(numTrials):
+    		patient = TreatedPatient([ResistantVirus(0.1, 0.05, {'guttagonol': False}, 0.005) for j in range(100)], 2000)
+    		for x in range(delay):
+    			patient.update()
+    		patient.addPrescription('guttagonol')
+    		for x in range(149):
+    			patient.update()
+    		total.append(patient.update())
 
-            for step in range(delay + 150):
-                if step == delay:
-                    my_patient.addPrescription('guttagonol')
-                virusPop = my_patient.update()
-            res.append(virusPop)
+    	pylab.xlabel('Virus population size')
+    	pylab.ylabel('Frequencies')
+    	pylab.title('Virus Population Histograms')
+    	pylab.legend()
+    	pylab.hist(total)
+    	pylab.show()
 
-    toPlot = []
-    for i in range(0, len(res), numTrials):
-        toPlot.append(res[i:i + numTrials])
 
-    for i, j in enumerate(delays):
-        pylab.subplot(2, 2, i + 1)
-        pylab.hist(toPlot[i])
-    pylab.show()
-
-simulationDelayedTreatment(100)
+# simulationDelayedTreatment(100)
 
 
 
@@ -74,42 +62,26 @@ def simulationTwoDrugsDelayedTreatment(numTrials):
 
     numTrials: number of simulation runs to execute (an integer)
     """
-    numViruses = 100
-    maxPop = 1000
-    maxBirthProb = 0.1
-    clearProb = 0.05
-    resistances = {'guttagonol': False, 'grimpex': False}
-    mutProb = 0.005
-
     delays = [300, 150, 75, 0]
-    first_drug = 150
-    res = []
-
     for delay in delays:
-    	second_drug = first_drug + delay
-    	steps = second_drug + 150
-    	for trial in range(numTrials):
-    		viruses = []
-    		virusPop = 0
-    		for i in range(numViruses):
-    			viruses.append(ResistantVirus(maxBirthProb, clearProb, resistances, mutProb))
-    		patient = TreatedPatient(viruses, maxPop)
+    	total = []
+    	for i in range(numTrials):
+    		patient = TreatedPatient([ResistantVirus(0.1, 0.05, {'guttagonol': False, 'grimpex': False}, 0.005) for j in range(100)], 1000)
+    		for x in range(150):
+    			patient.update()
+    		patient.addPrescription('guttagonol')
+    		for x in range(delay):
+    			patient.update()
+    		patient.addPrescription('grimpex')
+    		for x in range(149):
+    			patient.update()
+    		total.append(patient.update())
 
-    		for step in range(steps):
-    			if step == first_drug:
-    				patient.addPrescription('guttagonol')
-    			elif step == second_drug:
-    				patient.addPrescription('grimpex')
-    			virusPop = patient.update()
-    		res.append(virusPop)
-
-    toPlot = []
-    for i in range(0, len(res), numTrials):
-        toPlot.append(res[i:i + numTrials])
-
-    for i, j in enumerate(delays):
-        pylab.subplot(2, 2, i + 1)
-        pylab.hist(toPlot[i])
-    pylab.show()
+    	pylab.xlabel('Virus population size')
+    	pylab.ylabel('Frequencies')
+    	pylab.title('Virus Population Histograms')
+    	pylab.legend()
+    	pylab.hist(total)
+    	pylab.show()
 
 simulationTwoDrugsDelayedTreatment(100)
